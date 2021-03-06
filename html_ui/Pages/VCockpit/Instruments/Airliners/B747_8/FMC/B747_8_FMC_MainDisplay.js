@@ -70,6 +70,8 @@ class B747_8_FMC_MainDisplay extends Boeing_FMC {
         this._TORwyWindSpd = "";
         this.messages = [];
         this.sentMessages = [];
+        this.units;
+        this.useLbs;
         this.atcComm = {            
             estab: false,
             loggedTo: "",
@@ -183,6 +185,9 @@ class B747_8_FMC_MainDisplay extends Boeing_FMC {
         FMC_Menu.ShowPage(this);
         this.saltyBase = new SaltyBase();
         this.saltyBase.init();
+        Include.addScript("/JS/debug.js", function () {
+            g_modDebugMgr.AddConsole(null);
+        });
     }
     onPowerOn() {
         super.onPowerOn();
@@ -200,6 +205,13 @@ class B747_8_FMC_MainDisplay extends Boeing_FMC {
         this.updateAutopilot();
         this.updateVREF25();
         this.updateVREF30();
+        if (SaltyDataStore.get("OPTIONS_UNITS", "KG") == "KG") {
+            this.units = true;
+            this.useLbs = false;
+        } else if (SaltyDataStore.get("OPTIONS_UNITS", "KG") == "LBS") {
+            this.units = false;
+            this.useLbs = true;
+        }
         this.saltyBase.update();
     }
     onInputAircraftSpecific(input) {

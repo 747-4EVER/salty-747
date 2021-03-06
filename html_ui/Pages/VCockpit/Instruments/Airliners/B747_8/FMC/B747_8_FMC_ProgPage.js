@@ -1,6 +1,20 @@
 class B747_8_FMC_ProgPage {
     static ShowPage1(fmc) {
         fmc.clearDisplay();
+        let fuelBurnUnits;
+        let fuelQtyUnits;
+        let fuelQtyDensity;
+        if (fmc.units) {
+            fuelBurnUnits = "kilograms per hour";
+            fuelQtyUnits = "liters";
+            fuelQtyDensity = 0.000804;
+            console.log("unit is metric");
+        } else {
+            fuelBurnUnits = "pounds per hour";
+            fuelQtyUnits = "gallons";
+            fuelQtyDensity = 0.0067;
+            console.log("unit is not metric");
+        }
         B747_8_FMC_ProgPage._timer = 0;
         fmc.pageUpdate = () => {
             B747_8_FMC_ProgPage._timer++;
