@@ -17,6 +17,7 @@ class Jet_PFD_AttitudeIndicator extends HTMLElement {
         this.horizonBottomColor = "";
         this.horizonVisible = true;
         this.isHud = false;
+        this.isFPVon = false;
         this._aircraft = Aircraft.A320_NEO;
     }
     static get dynamicAttributes() {
@@ -51,6 +52,14 @@ class Jet_PFD_AttitudeIndicator extends HTMLElement {
         this.construct();
     }
     showFPV(_active) {
+        if (!this.isFPVon) {
+            SimVar.SetSimVarValue("L:SALTY_FPV_ON", "bool", true);
+            this.isFPVon = true;
+        }
+        else {
+            SimVar.SetSimVarValue("L:SALTY_FPV_ON", "bool", false);
+            this.isFPVon = false;
+        }
     }
     destroyLayout() {
         Utils.RemoveAllChildren(this);
@@ -79,7 +88,7 @@ class Jet_PFD_AttitudeIndicator extends HTMLElement {
     construct_B747_8() {
         let pitchFactor = -6.5;
         this.pitchAngleFactor = pitchFactor;
-        this.horizonAngleFactor = pitchFactor;
+        this.horizonAngleFactor = pitchfactor - 1.3;
         {
             this.horizon_root = document.createElementNS(Avionics.SVG.NS, "svg");
             this.horizon_root.setAttribute("id", "Background");
@@ -555,7 +564,7 @@ var Jet_PFD_FlightDirector;
         createCircle(_radius) {
             var circle = document.createElementNS(Avionics.SVG.NS, "circle");
             circle.setAttribute("cx", "0");
-            circle.setAttribute("cy", "0");
+            circle.setAttribute("cy", "-20");
             circle.setAttribute("r", _radius.toString());
             this.applyStyle(circle);
             return circle;
@@ -658,6 +667,7 @@ var Jet_PFD_FlightDirector;
             this.group.appendChild(this.createLine(-circleRadius, 0, -(circleRadius + horizontalLineLength), 0));
             this.group.appendChild(this.createLine(circleRadius, 0, (circleRadius + horizontalLineLength), 0));
             this.group.appendChild(this.createLine(0, -circleRadius, 0, -(circleRadius + verticalLineLength)));
+            this.group.setAttribute("stroke-width", "3");
         }
         refresh(_deltaTime) {
             if (this.group != null) {
@@ -697,8 +707,8 @@ var Jet_PFD_FlightDirector;
                         }
                     }
                     var x = this.calculatePosXFromBank(currentHeading, 0);
-                    var y = this.calculatePosYFromPitch(currentPitch, 0);
-                    this.group.setAttribute("transform", "translate(" + x + ", " + y + ")");
+                    var y = (this.calculatePosYFromPitch(currentPitch, 0) - 10);
+                    this.group.setAttribute("transform", "translate(" + -x + ", " + -y + ")");
                 }
                 else {
                     this.group.setAttribute("transform", "translate(0, 0)");
@@ -711,9 +721,9 @@ var Jet_PFD_FlightDirector;
     }
     class FPV_Boeing extends PathVectorDisplay {
         getColour() { return "white"; }
-        getCircleRadius() { return 10; }
-        getVerticalLineLength() { return 15; }
-        getHorizontalLineLength() { return 40; }
+        getCircleRadius() { return 6; }
+        getVerticalLineLength() { return 10; }
+        getHorizontalLineLength() { return 20; }
     }
     class FPD_Airbus extends DisplayBase {
     }
@@ -789,8 +799,9 @@ var Jet_PFD_FlightDirector;
         }
         refreshActiveModes() {
             var fdActive = (Simplane.getAutoPilotFlightDirectorActive(1));
+            var fpvActive = SimVar.GetSimVarValue("L:SALTY_FPV_ON", "bool");
             this.setModeActive(0, fdActive);
-            this.setModeActive(1, fdActive && Simplane.getAutoPilotFPAModeActive());
+            this.setModeActive(1, fpvActive);
         }
         initDefaultValues() {
             this.fFDPitchOffset = 1.75;
